@@ -1,0 +1,12 @@
+[
+    {
+        "fromAddres" : "Motti",
+        "toAddress" : "Yoni",
+        "amount" : 100
+    },
+    {
+        "fromAddres" : "Yoni",
+        "toAddress" : "mica",
+        "amount" : 100
+    }
+]
