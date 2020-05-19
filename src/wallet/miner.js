@@ -15,6 +15,7 @@ class Miner extends Wallet {
         super(srcPort, dstPorts);
         this.blockChain = new Blockchain();
         this.connection = new P2pConnection(srcPort, dstPorts);
+
     }
 
     // All codes in menu.
@@ -25,51 +26,55 @@ class Miner extends Wallet {
     menuCommandCodeMine = 5;
     menuCommandCodeGetBalance = 6;
 
-    fullNodeRun() {
+    minerRun() {
         this.connection.topology = topology(this.connection.myIp, this.connection.peerIps)
             .on('connection', (socket, peerIp) => {
-                this.showMenu();
-                super.performGenesisTransaction();
                 const peerPort = this.connection.extractPortFromIp(peerIp);
                 this.connection.sockets[peerPort] = socket;
-                console.log('connected to peer - ', peerPort);
+                this.connection.peers.push(peerPort);
 
-                stdin.on('data', data => {
-                    const params = data.toString().trim().split(' ');
-                    const command = parseInt(params[this.menuCodeCommandInParams], 10);
-
-                    if (command === this.menuCommandCodeTransaction) {
-                        this.performTransaction(params[1], params[2]);
-                    }
-                    else if (command === this.menuCommandCodeVerify) {
-                        console.log(params);
-                        const fnSocket = this.connection.sockets[params[1]];
-                        const vmsg = "verify: " + this.connection.me + " " + params[2];
-                        fnSocket.write(vmsg);
-                    }
-                    else if (command === this.menuCommandViewAllTransaction) {
-                        console.log('my transactions:')
-                        for (const tx of this.currentWalletTransactions) {
-                            console.log(tx);
-                        }
-                    }
-                    else if (command === this.menuCommandCodePrintMyPublic) {
-                        console.log('My public address: \n' + this.address);
-                    }
-                    else if (command === this.menuCommandCodeMine) {
-                        this.mine();
-
-                        for (const p of this.connection.peers) {
-                            this.connection.sockets[p].write("minChain: " + JSON.stringify(this.blockChain.getMinChain()));
-                        }
-                    }
-                    else if (command === this.menuCommandCodeGetBalance) {
-                        const balance = this.blockChain.getBalanceOfAddress(params[1]);
-                        console.log('balance: ' + balance);
-                    }
-
+                if (!this.connectedOnce) {
+                    this.connectedOnce = true;
                     this.showMenu();
-                });
+                    super.performGenesisTransaction();
+                    console.log('connected to peer - ', peerPort);
+                    stdin.on('data', data => {
+                        const params = data.toString().trim().split(' ');
+                        const command = parseInt(params[this.menuCodeCommandInParams], 10);
+
+                        if (command === this.menuCommandCodeTransaction) {
+                            this.performTransaction(params[1], params[2]);
+                        }
+                        else if (command === this.menuCommandCodeVerify) {
+                            console.log(params);
+                            const fnSocket = this.connection.sockets[params[1]];
+                            const vmsg = "verify: " + this.connection.me + " " + params[2];
+                            fnSocket.write(vmsg);
+                        }
+                        else if (command === this.menuCommandViewAllTransaction) {
+                            console.log('my transactions:')
+                            for (const tx of this.currentWalletTransactions) {
+                                console.log(tx);
+                            }
+                        }
+                        else if (command === this.menuCommandCodePrintMyPublic) {
+                            console.log('My public address: \n' + this.address);
+                        }
+                        else if (command === this.menuCommandCodeMine) {
+                            this.mine();
+
+                            for (const p of this.connection.peers) {
+                                this.connection.sockets[p].write("minChain: " + JSON.stringify(this.blockChain.getMinChain()));
+                            }
+                        }
+                        else if (command === this.menuCommandCodeGetBalance) {
+                            const balance = this.blockChain.getBalanceOfAddress(params[1]);
+                            console.log('balance: ' + balance);
+                        }
+
+                        this.showMenu();
+                    });
+                }
 
                 socket.on('data', data => {
                     const msg = data.toString().trim();
@@ -84,6 +89,7 @@ class Miner extends Wallet {
                         }
                     }
                 })
+
             });
     }
 

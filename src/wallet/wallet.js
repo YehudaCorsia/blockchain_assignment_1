@@ -20,6 +20,7 @@ class Wallet {
         this.currentWalletTransactions = [];
         this.minChain = {};
         this.connection = new P2pConnection(srcPort, dstPorts);
+        this.connectedOnce = false;
     }
 
     menuCodeCommandInParams = 0;
@@ -34,44 +35,50 @@ class Wallet {
     spvRun() {
         this.connection.topology = topology(this.connection.myIp, this.connection.peerIps)
             .on('connection', (socket, peerIp) => {
-                this.showMenu();
-                this.performGenesisTransaction();
+
                 const peerPort = this.connection.extractPortFromIp(peerIp);
                 this.connection.sockets[peerPort] = socket;
                 console.log('Connected to : ', peerPort);
 
-                stdin.on('data', data => {
-                    const params = data.toString().trim().split(' ');
-                    const command = parseInt(params[this.menuCodeCommandInParams], 10);
-
-                    if (command === this.menuCommandCodeTransaction) {
-                        this.performTransaction(params[1], params[2]);
-                    }
-                    else if (command === this.menuCommandCodeVerify) {
-                        console.log(params);
-                        const fnSocket = this.connection.sockets[params[1]];
-                        const vmsg = "verify: " + this.connection.me + " " + params[2];
-                        fnSocket.write(vmsg);
-                    }
-                    else if (command === this.menuCommandViewAllTransaction) {
-                        console.log('my transactions:')
-                        for (const tx of this.currentWalletTransactions) {
-                            console.log(tx);
-                        }
-                    }
-                    else if (command === this.menuCommandCodePrintMyPublic) {
-                        console.log('My public address: \n' + this.address);
-                    }
-
+                if (!this.connectedOnce) {
+                    this.connectedOnce = true;
+                    this.performGenesisTransaction();
                     this.showMenu();
-                });
+
+
+                    stdin.on('data', data => {
+                        const params = data.toString().trim().split(' ');
+                        const command = parseInt(params[this.menuCodeCommandInParams], 10);
+
+                        if (command === this.menuCommandCodeTransaction) {
+                            this.performTransaction(params[1], params[2]);
+                        }
+                        else if (command === this.menuCommandCodeVerify) {
+                            console.log(params);
+                            const fnSocket = this.connection.sockets[params[1]];
+                            const vmsg = "verify: " + this.connection.me + " " + params[2];
+                            fnSocket.write(vmsg);
+                        }
+                        else if (command === this.menuCommandViewAllTransaction) {
+                            console.log('my transactions:')
+                            for (const tx of this.currentWalletTransactions) {
+                                console.log(tx);
+                            }
+                        }
+                        else if (command === this.menuCommandCodePrintMyPublic) {
+                            console.log('My public address: \n' + this.address);
+                        }
+
+                        this.showMenu();
+                    });
+                }
 
                 socket.on('data', data => {
                     const minChainSize = 8
                     const msg = data.toString().trim();
                     if (msg.slice(0, minChainSize) === 'minChain') {
                         this.minChain = JSON.parse(msg.slice(minChainSize + 1, msg.length));
-                        console.log('received min chain.');
+                        console.log('Received min chain.');
                     } else if (msg.slice(0, 2) === 'vr') {
                         const params = msg.split(' ');
                         const txHash = params[1];

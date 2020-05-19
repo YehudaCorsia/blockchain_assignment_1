@@ -50,10 +50,14 @@ parser.addArgument(
 var args = parser.parseArgs();
  
 let wallet
+if (args.remote_nodes_ports === null)
+{
+  args.remote_nodes_ports = []
+}
  
 if (args.node_type === "miner") {
   wallet = new Miner(args.local_port, args.remote_nodes_ports);
-  wallet.fullNodeRun();
+  wallet.minerRun();
 } else if (args.node_type === "spv") {
   wallet = new Wallet(args.local_port, args.remote_nodes_ports);
   wallet.spvRun();
