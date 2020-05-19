@@ -4,6 +4,7 @@ const { appendToMemPool } = require('../pool/pool.js');
 const { P2pConnection } = require('../p2p/p2p.js')
 const EC = require('elliptic').ec;
 const topology = require('fully-connected-topology');
+const MerkleTools = require('merkle-tools')
 const SHA256 = require('crypto-js/sha256');
 const {
     stdin,
@@ -21,6 +22,7 @@ class Wallet {
         this.minChain = {};
         this.connection = new P2pConnection(srcPort, dstPorts);
         this.connectedOnce = false;
+        this.MyMerkleTools = new MerkleTools()
     }
 
     menuCodeCommandInParams = 0;
@@ -123,19 +125,7 @@ class Wallet {
     verify(txHash, results) {
         let hashToCheckAgainst = txHash;
         let root = this.minChain[results['blockHash']];
-
-        for (const hash in results['hashes']) {
-            if (results['hashes'][hash] === 'after') {
-                console.log('Hash to check agains: ' + hashToCheckAgainst);
-                hashToCheckAgainst = SHA256(hashToCheckAgainst + hash).toString();
-            } else {
-                hashToCheckAgainst = SHA256(hash + hashToCheckAgainst).toString();
-            }
-        }
-
-        console.log("calc: " + hashToCheckAgainst + "\nroot: " + root)
-
-        return hashToCheckAgainst === root;
+        return this.MyMerkleTools.validateProof(results.hashes,hashToCheckAgainst,Buffer.from(root));
     }
 
 
