@@ -22,4 +22,5 @@ $RECYCLE.BIN/
 # Operating System Files
 # =========================
 
+.vscode/
 node_modules/
