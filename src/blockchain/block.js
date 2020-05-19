@@ -16,10 +16,7 @@ class Block {
         this.nonce = 0;
     }
 
-    /**
-     * m is the number of bits, k is the number of hashes
-     * this calculations are from: https://stackoverflow.com/questions/658439/how-many-hash-functions-does-my-bloom-filter-need 
-     */
+
     getBloomFilterWith(transactions) {
         const ln2 = Math.log(2);
         const m = Math.floor((-4 * Math.log(0.001)) / (Math.pow(ln2, 2)));
@@ -64,7 +61,7 @@ class Block {
     }
 
     isTransactionInThisBlock(txHash) {
-        console.log('transactions block:\n'+this.transactions.map(x => x.calculateHash()));
+        console.log('Transactions block:\n'+this.transactions.map(x => x.calculateHash()));
         if (this.bloomFilter.has(txHash)) {
             if (this.transactions.find(element => element.calculateHash() === txHash)) {
                 return true;

@@ -1,6 +1,5 @@
 var fs = require('fs');
 const {Transaction} = require('../blockchain/transaction.js');
-//const path = '/home/yoi/blockchain/homework_yoni/src/pool/mempool.json';
 const path = 'src/pool/mempool.json'
 
 function readMemPool() {

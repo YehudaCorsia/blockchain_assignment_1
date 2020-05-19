@@ -7,7 +7,6 @@ const topology = require('fully-connected-topology');
 const SHA256 = require('crypto-js/sha256');
 const {
     stdin,
-    exit,
     argv
 } = process
 
@@ -23,54 +22,68 @@ class Wallet {
         this.connection = new P2pConnection(srcPort, dstPorts);
     }
 
-    spvMain() {
+    menuCodeCommandInParams = 0;
+
+    // All codes in menu.
+    menuCommandCodeTransaction = 1;
+    menuCommandCodeVerify = 2;
+    menuCommandViewAllTransaction = 3;
+    menuCommandCodePrintMyPublic = 4;
+
+
+    spvRun() {
         this.connection.topology = topology(this.connection.myIp, this.connection.peerIps)
             .on('connection', (socket, peerIp) => {
-                this.printMenu();
+                this.showMenu();
                 this.performGenesisTransaction();
                 const peerPort = this.connection.extractPortFromIp(peerIp);
                 this.connection.sockets[peerPort] = socket;
-                console.log('connected to peer - ', peerPort);
+                console.log('Connected to : ', peerPort);
 
                 stdin.on('data', data => {
                     const params = data.toString().trim().split(' ');
+                    const command = parseInt(params[this.menuCodeCommandInParams], 10);
 
-                    if (params[0] === '1') {
+                    if (command === this.menuCommandCodeTransaction) {
                         this.performTransaction(params[1], params[2]);
                     }
-                    else if (params[0] === '3') {
-                        console.log('my transactions:')
-                        for (const tx of this.currentWalletTransactions) {
-                            console.log(tx);
-                        }
-                    }
-                    else if (params[0] === '2') {
+                    else if (command === this.menuCommandCodeVerify) {
                         console.log(params);
                         const fnSocket = this.connection.sockets[params[1]];
                         const vmsg = "verify: " + this.connection.me + " " + params[2];
                         fnSocket.write(vmsg);
                     }
+                    else if (command === this.menuCommandViewAllTransaction) {
+                        console.log('my transactions:')
+                        for (const tx of this.currentWalletTransactions) {
+                            console.log(tx);
+                        }
+                    }
+                    else if (command === this.menuCommandCodePrintMyPublic) {
+                        console.log('My public address: \n' + this.address);
+                    }
 
-                    this.printMenu();
+                    this.showMenu();
                 });
 
                 socket.on('data', data => {
+                    const minChainSize = 8
                     const msg = data.toString().trim();
-                    if (msg.slice(0, 8) === 'minChain') {
-                        this.minChain = JSON.parse(msg.slice(9, msg.length));
+                    if (msg.slice(0, minChainSize) === 'minChain') {
+                        this.minChain = JSON.parse(msg.slice(minChainSize + 1, msg.length));
                         console.log('received min chain.');
                     } else if (msg.slice(0, 2) === 'vr') {
                         const params = msg.split(' ');
                         const txHash = params[1];
 
                         if (params[2] === '-1') {
-                            console.log(`hash ${txHash} is not verified!`)
+                            console.log(`hash ${txHash} is not verified.`)
                         } else {
                             const results = JSON.parse(params[2]);
                             if (this.verify(txHash, results)) {
-                                console.log(`${txHash} is verified!`);
+                                console.log(`${txHash} is verified.`);
                             } else {
-                                console.log(`${txHash} is not verified!`);
+                                console.log(`${txHash} is not verified.`);
                             }
                         }
                     }
@@ -95,7 +108,7 @@ class Wallet {
             if (this.verify(tx.calculateHash(), fnSocket)) {
                 console.log(`tx : ${tx} is verified!`);
             } else {
-                console.log(`tx : ${tx} is not verified, something happened!`);
+                console.log(`tx : ${tx} is not verified.`);
             }
         }
     }
@@ -105,9 +118,8 @@ class Wallet {
         let root = this.minChain[results['blockHash']];
 
         for (const hash in results['hashes']) {
-            console.log("zubi " + results['hashes'][hash])
             if (results['hashes'][hash] === 'after') {
-                console.log('hash to check agains: ' + hashToCheckAgainst);
+                console.log('Hash to check agains: ' + hashToCheckAgainst);
                 hashToCheckAgainst = SHA256(hashToCheckAgainst + hash).toString();
             } else {
                 hashToCheckAgainst = SHA256(hash + hashToCheckAgainst).toString();
@@ -119,13 +131,14 @@ class Wallet {
         return hashToCheckAgainst === root;
     }
 
-    printMenu() {
-        console.log('=========================================');
-        console.log('my public address: ' + this.address);
-        console.log('1: transaction [usage: 1 <dst address> <amount>]')
-        console.log('2: verify [usage: 2 <full node port> <hash>]')
-        console.log('3: view all transaction hashes of this wallet (copy and paste to (2) if you want to verify');
-        console.log('=========================================');
+
+    showMenu() {
+        console.log('\n\n=========================================');
+        console.log(this.menuCommandCodeTransaction + ' : Transaction [usage: <dst address> <amount>]')
+        console.log(this.menuCommandCodeVerify + ' : Verify [usage: <full node port> <hash>]')
+        console.log(this.menuCommandViewAllTransaction + ' : View all transaction hashes of this wallet');
+        console.log(this.menuCommandCodePrintMyPublic + ' : Print my public address');
+        console.log('=========================================\n\n');
     }
 }
 

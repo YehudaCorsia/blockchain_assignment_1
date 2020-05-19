@@ -20,7 +20,12 @@ class P2pConnection {
     }
 
     getPeerIps(peers) {
-        return peers.map(peer => this.toLocalIp(peer))
+        if (peers){
+            return peers.map(peer => this.toLocalIp(peer))
+        }
+        else {
+            return []
+        }
     }
 
     extractPortFromIp(peer) {

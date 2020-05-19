@@ -1,28 +1,60 @@
 const {
     stdin,
-    exit,
     argv
 } = process
 const { Wallet } = require('./src/wallet/wallet.js');
-const { FullNode } = require('./src/wallet/fullNode.js');
+const { Miner } = require('./src/wallet/miner.js');
 
-const params = extractPeersAndMyPort();
+var ArgumentParser = require('argparse').ArgumentParser;
 
-let wallet;
-if (params.type === 'fullNode') {
-    wallet = new FullNode(params.me, params.peers);
-    wallet.fullNodeMain();
-} else if (params.type === 'spv') {
-    wallet = new Wallet(params.me, params.peers);
-    wallet.spvMain();
-} else {
-    console.log(`${params.type} is not a supported type`);
-}
+const logo = "\
+\n\
++-+-+-+-+-+-+-+-+-+-+-+-+-+-+\n\
+|B|A|Y|-|B|L|O|C|K|C|H|A|I|N|\n\
++-+-+-+-+-+-+-+-+-+-+-+-+-+-+\n\
+\n\
+"
+console.log(logo)
+console.log("Welcome to a new world of coins!")
+console.log("Welcome to Ben and Corsia blockchain wallet :-)")
 
-function extractPeersAndMyPort() {
-    return {
-        type: argv[2],
-        me: argv[3],
-        peers: argv.slice(4, argv.length)
-    }
+var parser = new ArgumentParser({
+  version: '1.0',
+  addHelp: true,
+  description: 'CyberCloudBlockchain by Yehdua & Ben'
+});
+ 
+parser.addArgument(
+  ['-n', '--node-type'], {
+    help: 'Node type',
+    choices: ['miner', 'spv'],
+    required: true
+  }
+);
+parser.addArgument(
+  ['-lp', '--local-port'], {
+    help: 'Local port',
+    type: "int",
+    required: true
+  }
+);
+parser.addArgument(
+  ['-rnp', '--remote-nodes-ports'], {
+    help: 'Ports of the remote nodes',
+    nargs: '*',
+    type: "int",
+    required: false
+  }
+);
+ 
+var args = parser.parseArgs();
+ 
+let wallet
+ 
+if (args.node_type === "miner") {
+  wallet = new Miner(args.local_port, args.remote_node_ports);
+  wallet.fullNodeRun();
+} else if (args.node_type === "spv") {
+  wallet = new Wallet(args.local_port, args.remote_nodes_ports);
+  wallet.spvRun();
 }

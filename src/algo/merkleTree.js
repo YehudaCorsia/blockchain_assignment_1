@@ -76,34 +76,3 @@ class MerkleTree {
     }
 }
 module.exports.MerkleTree = MerkleTree;
-// // =================================
-// // ========usage example============
-// // =================================
-// const txs = []
-// const myKey = ec.keyFromPrivate('08104e76e48955b5905c39df70389d0c1ca8a0a891d326ce951b6dcd37d055a0');
-// const myWalletAddress = myKey.getPublic('hex'); 
-
-// const tx1 = new Transaction(myWalletAddress, 'address1', 50);
-// txs.push(tx1);
-// txs.push(new Transaction(myWalletAddress, 'address2', 50));
-// txs.push(new Transaction(myWalletAddress, 'address3', 50));
-// txs.push(new Transaction(myWalletAddress, 'address4', 50));
-
-// const merkle = new MerkleTree(txs);
-// const root = merkle.init();
-// const results = merkle.getVerificationHashesFor(tx1.calculateHash());
-// console.log(`results =`);
-// console.log(results);
-
-// let verificationHash = tx1.calculateHash();
-// console.log(tx1.calculateHash());
-
-// for (hash in results) {
-//     if (results[hash] === 'after') {
-//         verificationHash = SHA256(verificationHash + hash).toString();
-//     } else {
-//         verificationHash = SHA256(hash + verificationHash).toString();
-//     }
-// }
-
-// console.log(`verificationHash: ${verificationHash}\nroot\t\t: ${root}`);
