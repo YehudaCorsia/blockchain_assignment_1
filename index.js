@@ -52,7 +52,7 @@ var args = parser.parseArgs();
 let wallet
  
 if (args.node_type === "miner") {
-  wallet = new Miner(args.local_port, args.remote_node_ports);
+  wallet = new Miner(args.local_port, args.remote_nodes_ports);
   wallet.fullNodeRun();
 } else if (args.node_type === "spv") {
   wallet = new Wallet(args.local_port, args.remote_nodes_ports);

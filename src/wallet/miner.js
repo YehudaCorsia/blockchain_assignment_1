@@ -14,7 +14,16 @@ class Miner extends Wallet {
     constructor(srcPort, dstPorts) {
         super(srcPort, dstPorts);
         this.blockChain = new Blockchain();
+        this.connection = new P2pConnection(srcPort, dstPorts);
     }
+
+    // All codes in menu.
+    menuCommandCodeTransaction = 1;
+    menuCommandCodeVerify = 2;
+    menuCommandViewAllTransaction = 3;
+    menuCommandCodePrintMyPublic = 4;
+    menuCommandCodeMine = 5;
+    menuCommandCodeGetBalance = 6;
 
     fullNodeRun() {
         this.connection.topology = topology(this.connection.myIp, this.connection.peerIps)
@@ -27,16 +36,34 @@ class Miner extends Wallet {
 
                 stdin.on('data', data => {
                     const params = data.toString().trim().split(' ');
-                    if (params[0] === '1') {
-                        super.performTransaction(params[1], params[2]);
+                    const command = parseInt(params[this.menuCodeCommandInParams], 10);
+
+                    if (command === this.menuCommandCodeTransaction) {
+                        this.performTransaction(params[1], params[2]);
                     }
-                    else if (params[0] === '2') {
+                    else if (command === this.menuCommandCodeVerify) {
+                        console.log(params);
+                        const fnSocket = this.connection.sockets[params[1]];
+                        const vmsg = "verify: " + this.connection.me + " " + params[2];
+                        fnSocket.write(vmsg);
+                    }
+                    else if (command === this.menuCommandViewAllTransaction) {
+                        console.log('my transactions:')
+                        for (const tx of this.currentWalletTransactions) {
+                            console.log(tx);
+                        }
+                    }
+                    else if (command === this.menuCommandCodePrintMyPublic) {
+                        console.log('My public address: \n' + this.address);
+                    }
+                    else if (command === this.menuCommandCodeMine) {
                         this.mine();
 
                         for (const p of this.connection.peers) {
                             this.connection.sockets[p].write("minChain: " + JSON.stringify(this.blockChain.getMinChain()));
                         }
-                    } else if (params[0] === '3') {
+                    }
+                    else if (command === this.menuCommandCodeGetBalance) {
                         const balance = this.blockChain.getBalanceOfAddress(params[1]);
                         console.log('balance: ' + balance);
                     }
@@ -80,17 +107,19 @@ class Miner extends Wallet {
             }
         }
 
-        console.log(`hash ${txHash} is not in the block chain!`);
+        console.log(`Hash ${txHash} is not in the block chain!`);
         return
     }
 
     showMenu() {
-        console.log('=========================================');
-        console.log('my public address: ' + this.address);
-        console.log('1: transaction [usage: 1 <dst address> <amount>]')
-        console.log('2: mine 3 transactions (+ reward transaction)');
-        console.log('3: get balacne [usage: 3 <address>]');
-        console.log('=========================================');
+        console.log('\n\n=========================================');
+        console.log(this.menuCommandCodeTransaction + ' : Transaction [usage: <dst address> <amount>]')
+        console.log(this.menuCommandCodeVerify + ' : Verify [usage: <full node port> <hash>]')
+        console.log(this.menuCommandViewAllTransaction + ' : View all transaction hashes of this wallet');
+        console.log(this.menuCommandCodePrintMyPublic + ' : Print my public address');
+        console.log(this.menuCommandCodeMine + ' : Mine 3 transactions (+ reward transaction)');
+        console.log(this.menuCommandCodeGetBalance + ' : Get balacne [usage: <address>]');
+        console.log('=========================================\n\n');
     }
 }
 
