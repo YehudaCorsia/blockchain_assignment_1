@@ -15,6 +15,6 @@
     "crypto-js": "^4.0.0",
     "elliptic": "^6.5.2",
     "fully-connected-topology": "^1.1.1",
-    "merkle-tools": "^1.4.0"
+    "js-sha3": "^0.8.0"
   }
 }
