@@ -4,7 +4,7 @@ const { appendToMemPool } = require('../pool/pool.js');
 const { P2pConnection } = require('../p2p/p2p.js')
 const EC = require('elliptic').ec;
 const topology = require('fully-connected-topology');
-const YBMerkleTree = require('ybmerkletree')
+const YBMerkleTree = require('../ybAlgo/ybmerkletree.js')
 const SHA256 = require('crypto-js/sha256');
 const {
     stdin,
@@ -125,7 +125,7 @@ class Wallet {
     verify(txHash, results) {
         let hashToCheckAgainst = txHash;
         let root = this.minChain[results['blockHash']];
-        return this.MyMerkleTools.validateProof(results.hashes,hashToCheckAgainst,Buffer.from(root));
+        return this.MyMerkleTools.validateProofArray(results.hashes,hashToCheckAgainst,Buffer.from(root));
     }
 
 
