@@ -2,7 +2,7 @@ const SHA256 = require('crypto-js/sha256');
 const EC = require('elliptic').ec;
 const ec = new EC('secp256k1');
 // const { MerkleTree } = require('../algo/merkleTree.js');
-var MerkleTools = require('merkle-tools')
+var YBMerkleTree = require('ybmerkletree')
 const { BloomFilter } = require('bloom-filters');
 
 class Block {
@@ -14,7 +14,7 @@ class Block {
         this.hash = this.calculateHash();
         this.nonce = 0;
 
-        this.merkleTree = new MerkleTools();
+        this.merkleTree = new YBMerkleTree();
         this.transactionsHashes = [];
 
         // Get all hashes of transactions
