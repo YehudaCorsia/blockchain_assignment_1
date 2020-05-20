@@ -1,8 +1,7 @@
 const SHA256 = require('crypto-js/sha256');
 const EC = require('elliptic').ec;
 const ec = new EC('secp256k1');
-// const { MerkleTree } = require('../algo/merkleTree.js');
-var MerkleTools = require('merkle-tools')
+var YBMerkleTree = require('../ybAlgo/ybmerkletree.js')
 const { BloomFilter } = require('bloom-filters');
 
 class Block {
@@ -14,7 +13,7 @@ class Block {
         this.hash = this.calculateHash();
         this.nonce = 0;
 
-        this.merkleTree = new MerkleTools();
+        this.merkleTree = new YBMerkleTree();
         this.transactionsHashes = [];
 
         // Get all hashes of transactions
@@ -24,7 +23,7 @@ class Block {
         }
 
         this.merkleTree.addLeaves(this.transactionsHashes)
-        this.merkleTree.makeBTCTree(false)
+        this.merkleTree.makeTree()
         this.merkleRoot = this.merkleTree.getMerkleRoot();
     }
 
@@ -70,7 +69,7 @@ class Block {
 
     getVerificationHashesFor(txHash) {
         var indexOfHash = this.transactionsHashes.indexOf(txHash)
-        return this.merkleTree.getProof(indexOfHash)
+        return this.merkleTree.buildAndGetProofArray(indexOfHash)
         // return this.merkleTree.getVerificationHashesFor(txHash);
     }
 
