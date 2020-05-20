@@ -1,5 +1,5 @@
 const { Transaction } = require('../blockchain/transaction.js');
-const { generatePair } = require('../algo/keyGenerator.js');
+const { generatePair } = require('../ybAlgo/keyGenerator.js');
 const { appendToMemPool } = require('../pool/pool.js');
 const { P2pConnection } = require('../p2p/p2p.js')
 const EC = require('elliptic').ec;
