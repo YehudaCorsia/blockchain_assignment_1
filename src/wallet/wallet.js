@@ -4,7 +4,7 @@ const { appendToMemPool } = require('../pool/pool.js');
 const { P2pConnection } = require('../p2p/p2p.js')
 const EC = require('elliptic').ec;
 const topology = require('fully-connected-topology');
-const MerkleTools = require('merkle-tools')
+const YBMerkleTree = require('ybmerkletree')
 const SHA256 = require('crypto-js/sha256');
 const {
     stdin,
@@ -22,7 +22,7 @@ class Wallet {
         this.minChain = {};
         this.connection = new P2pConnection(srcPort, dstPorts);
         this.connectedOnce = false;
-        this.MyMerkleTools = new MerkleTools()
+        this.MyMerkleTools = new YBMerkleTree()
     }
 
     menuCodeCommandInParams = 0;
