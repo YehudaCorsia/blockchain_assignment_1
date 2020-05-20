@@ -13,11 +13,26 @@ class Blockchain {
     }
 
     createGenesisBlock() {
-        return new Block("01/04/2020", [], "0");
+        return new Block(Date.now(), [], "0");
     }
 
     getLatestBlock() {
         return this.chain[this.chain.length - 1];
+    }
+
+    getPeersDetails(){
+        let peers = new Set()
+
+        for (const block of this.chain) {
+            for (const transaction of block.transactions) {
+                if (transaction.fromAddress != null) 
+                    peers.add(transaction.fromAddress);
+                if (transaction.toAddress != null)
+                    peers.add(transaction.toAddress);
+            }
+        }
+
+        return peers
     }
 
     minePendingTransactions(miningRewardAddress, pendingTransactions) {

@@ -25,6 +25,7 @@ class Miner extends Wallet {
     menuCommandCodePrintMyPublic = 4;
     menuCommandCodeMine = 5;
     menuCommandCodeGetBalance = 6;
+    menuCommandViewAllPeers = 7;
 
     minerRun() {
         this.connection.topology = topology(this.connection.myIp, this.connection.peerIps)
@@ -44,32 +45,40 @@ class Miner extends Wallet {
 
                         if (command === this.menuCommandCodeTransaction) {
                             this.performTransaction(params[1], params[2]);
-                        }
-                        else if (command === this.menuCommandCodeVerify) {
+                        } else if (command === this.menuCommandCodeVerify) {
                             console.log(params);
                             const fnSocket = this.connection.sockets[params[1]];
                             const vmsg = "verify: " + this.connection.me + " " + params[2];
                             fnSocket.write(vmsg);
-                        }
-                        else if (command === this.menuCommandViewAllTransaction) {
+                        } else if (command === this.menuCommandViewAllTransaction) {
                             console.log('my transactions:')
                             for (const tx of this.currentWalletTransactions) {
                                 console.log(tx);
                             }
-                        }
-                        else if (command === this.menuCommandCodePrintMyPublic) {
+                        } else if (command === this.menuCommandCodePrintMyPublic) {
                             console.log('My public address: \n' + this.address);
-                        }
-                        else if (command === this.menuCommandCodeMine) {
+                        } else if (command === this.menuCommandCodeMine) {
                             this.mine();
 
                             for (const p of this.connection.peers) {
                                 this.connection.sockets[p].write("minChain: " + JSON.stringify(this.blockChain.getMinChain()));
                             }
-                        }
-                        else if (command === this.menuCommandCodeGetBalance) {
+                        } else if (command === this.menuCommandCodeGetBalance) {
                             const balance = this.blockChain.getBalanceOfAddress(params[1]);
                             console.log('balance: ' + balance);
+                        } else if (command === this.menuCommandViewAllPeers) {
+                            const peers = this.blockChain.getPeersDetails();
+
+                            if (peers.size == 0) {
+                                console.log("There is no peers.");
+                            } else {
+                                console.log("List of peers:");
+                                let peersIter = peers.values();
+
+                                for (let index = 1; index < peers.size + 1; index++) {
+                                    console.log(`${index}. ${peersIter.next().value}`);
+                                }
+                            }
                         }
 
                         this.showMenu();
@@ -125,6 +134,7 @@ class Miner extends Wallet {
         console.log(this.menuCommandCodePrintMyPublic + ' : Print my public address');
         console.log(this.menuCommandCodeMine + ' : Mine 3 transactions (+ reward transaction)');
         console.log(this.menuCommandCodeGetBalance + ' : Get balacne [usage: <address>]');
+        console.log(this.menuCommandViewAllPeers + ' : View peers');
         console.log('=========================================\n\n');
     }
 }
